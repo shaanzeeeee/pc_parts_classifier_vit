@@ -1,0 +1,17 @@
+# Large data directories
+raw/
+cleaned/
+artifacts/*.pkl
+artifacts/*.pth
+models/
+.venv/
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keep lightweight artifacts and reports
+!artifacts/*.json
+!reports/
