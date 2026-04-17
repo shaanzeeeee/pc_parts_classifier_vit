@@ -1,0 +1,22 @@
+{
+  "best_model_name": "vit_base_patch16_224",
+  "classes": [
+    "AIO_Liquid_Cooler",
+    "Air_Cooler",
+    "Bad_Cable_Management",
+    "CPU",
+    "Good_Cable_Management",
+    "Graphics_Card",
+    "M2_NVMe_Drive",
+    "Motherboard",
+    "PC_Case",
+    "Power_Supply",
+    "RAM_Stick"
+  ],
+  "num_classes": 11,
+  "img_size": 224,
+  "batch_size": 16,
+  "epochs": 15,
+  "test_accuracy": 0.7389162561576355,
+  "created_at": "2026-04-17T01:48:37"
+}
