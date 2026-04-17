@@ -1,26 +1,42 @@
 # PC Components and Cable-Management Image Classifier
 
-An end-to-end computer vision project that classifies PC hardware and cable-management quality into 11 categories using transfer learning with FastAI and timm.
+End-to-end computer vision pipeline for classifying PC hardware and cable-management quality into 11 categories using FastAI, timm, and PyTorch.
 
-This project was built as a production-style ML workflow, not just a notebook experiment: dataset cleaning, reproducible split strategy, multi-model benchmarking, held-out evaluation, model export, and Hugging Face deployment are all included.
+This repository is structured like a production-style ML project: data cleaning, fixed split strategy, multi-model benchmarking, held-out evaluation, artifact export, and Hugging Face deployment.
 
-## Recruiter Snapshot
+## At a Glance
 
-- Problem type: Multi-class image classification (11 classes)
-- Dataset scale: 4,249 raw images -> 4,055 cleaned images after de-duplication
-- Data quality controls: Corrupt-image filtering + SHA1 duplicate removal (including cross-class duplicates)
-- Modeling strategy: Fair comparison across 3 pretrained backbones (ResNet50, EfficientNet-B3, ViT-Base)
-- Best model: ViT-Base Patch16 224
-- Test accuracy (held-out split): 73.89%
-- Deployment: Hugging Face Model + Gradio Space
+| Item | Value |
+| --- | --- |
+| Task | Multi-class image classification |
+| Number of classes | 11 |
+| Dataset size (raw -> cleaned) | 4,249 -> 4,055 |
+| Data quality controls | Corrupt-image filtering + SHA1 duplicate removal (including cross-class duplicates) |
+| Models compared | ResNet50, EfficientNet-B3, ViT-Base Patch16 224 |
+| Best model | ViT-Base Patch16 224 |
+| Held-out test accuracy | 73.89% |
+| Deployment | Hugging Face Model + Gradio Space |
 
-## Business / Product Framing
+## Quick Navigation
 
-This model can support:
+- [Business / Product Value](#business--product-value)
+- [Classes](#classes)
+- [Pipeline](#pipeline)
+- [Model Comparison](#model-comparison)
+- [Why ViT-Base Won](#why-vit-base-won)
+- [Confusion Analysis](#confusion-analysis)
+- [Final Test Results](#final-test-results)
+- [Artifacts and Deployment](#artifacts-and-deployment)
+- [Reproducibility](#reproducibility)
+- [Next Improvements](#next-improvements)
 
-1. Automated cataloging and tagging of PC part images.
+## Business / Product Value
+
+Potential applications:
+
+1. Automated cataloging/tagging of PC component images.
 2. Quality-assurance checks for PC build photos (good vs bad cable management).
-3. Moderation or recommendation workflows in e-commerce, forums, and enthusiast apps.
+3. Moderation/recommendation workflows in e-commerce and enthusiast communities.
 
 ## Classes
 
@@ -36,29 +52,29 @@ This model can support:
 10. Power_Supply
 11. RAM_Stick
 
-## End-to-End Pipeline
+## Pipeline
 
 ### 1) Data cleaning and indexing
 
-- Input source: `raw/`
-- Output dataset: `cleaned/`
-- Corrupt images removed with image verification.
-- Duplicate images removed using `sha1(file_bytes)` fingerprints.
-- Cross-class duplicates are explicitly tracked and excluded.
-- Cleaning metadata is stored in:
-	- `cleaned/cleaning_manifest.json`
-	- `cleaned/cleaned_index.csv`
+- Input directory: `raw/`
+- Cleaned output: `cleaned/`
+- Corrupt images removed via verification.
+- Duplicates removed using `sha1(file_bytes)` fingerprinting.
+- Cross-class duplicates explicitly tracked and excluded.
+- Cleaning metadata written to:
+  - `cleaned/cleaning_manifest.json`
+  - `cleaned/cleaned_index.csv`
 
-Cleaning summary (verified from manifest):
+Cleaning summary (from manifest):
 
 - Raw images: 4,249
 - Kept images: 4,055
 - Removed corrupt: 0
 - Removed duplicates: 194
 
-### 2) Reproducible split strategy
+### 2) Fixed reproducible split
 
-- Stratified split is fixed and reused for all models.
+- Shared fixed stratified split reused across all models.
 - Train: 3,243
 - Validation: 406
 - Test: 406
@@ -67,43 +83,36 @@ Cleaning summary (verified from manifest):
 ### 3) Training setup
 
 - Framework: FastAI + PyTorch + timm
-- Image size: 224x224
+- Input size: 224x224
 - Epochs: 15
-- Batch size: Auto-selected based on GPU memory (8 GB profile selected 16)
-- Seed control: Set for FastAI, NumPy, Python random, and PyTorch
-- Data augmentation: Moderate geometry + stronger lighting jitter for product-style images
+- Batch size: 16 (auto-selected for 8 GB GPU profile)
+- Seed controls: FastAI, NumPy, Python `random`, and PyTorch
+- Augmentation: Moderate geometry + stronger lighting jitter for product-style images
 
-### 4) Model benchmarking
+## Model Comparison
 
-All models are trained under the same split and training conditions for a fair comparison:
+All models are trained under the same split and training conditions for fair comparison:
 
 - ResNet50
 - EfficientNet-B3
 - ViT-Base Patch16 224
 
-Best model is selected based on validation behavior and then evaluated once on the untouched test split.
+### Comparison methodology
 
-### 5) How the 3 models were compared (loss, accuracy, epochs)
-
-To make model selection objective and reproducible, each model was trained on the same cleaned dataset, same split file, same image size, and same total epoch budget.
-
-Common training setup used for comparison:
-
-- Epochs: 15 per model
-- Input size: 224x224
-- Batch size: 16 (auto-selected for available 8 GB GPU profile)
-- Train/valid/test split: shared fixed stratified split (`cleaned/splits.csv`)
-
-Metrics tracked for each model:
+Tracked per model:
 
 - Training loss trajectory (`train_loss` per epoch)
 - Validation loss trajectory (`valid_loss` per epoch)
 - Validation accuracy trajectory (`accuracy` per epoch)
 - Learning rate used (`lr_used`)
 
-### Side-by-side training/results table
+Ranking logic in notebook (`Model Comparison and Best Model Selection`):
 
-The table below summarizes the model comparison using the same fixed validation and test splits used in the notebook workflow.
+1. Max validation accuracy (`best_val_accuracy`) - higher is better.
+2. Final validation loss (`final_val_loss`) - lower is better.
+3. Validation-loss stability (`val_loss_delta_std`) - lower is better.
+
+### Side-by-side results table
 
 | Model | Epochs | Validation Loss | Validation Accuracy | Test Accuracy | Test Macro Precision | Test Macro Recall | Test Macro F1 | Test Weighted F1 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -111,30 +120,22 @@ The table below summarizes the model comparison using the same fixed validation 
 | resnet50 | 15 | 1.1468 | 0.6700 | 0.7044 | 0.7017 | 0.6999 | 0.6984 | 0.7024 |
 | efficientnet_b3 | 15 | 1.1546 | 0.6379 | 0.6010 | 0.5977 | 0.5997 | 0.5943 | 0.5972 |
 
-Ranking logic implemented in the notebook (`Model Comparison and Best Model Selection`):
+## Why ViT-Base Won
 
-1. Max validation accuracy (`best_val_accuracy`) - higher is better.
-2. Final validation loss (`final_val_loss`) - lower is better.
-3. Validation-loss stability (`val_loss_delta_std`) - lower is better.
+Selected best model: `vit_base_patch16_224` (see [artifacts/best_model_metadata.json](artifacts/best_model_metadata.json)).
 
-This means the selected model is not only accurate, but also relatively better-behaved in validation dynamics.
+Key reasons:
 
-### 6) Why ViT-Base was selected as best
+1. Won the notebook's multi-criterion validation ranking (accuracy + loss + stability).
+2. Generalized best on held-out test split (73.89% accuracy).
+3. Strong separability on multiple hardware categories (for example RAM_Stick and PC_Case).
+4. Transformer backbone aligned well with dataset diversity (closeups + full-build scenes).
 
-The best model selected by the comparison pipeline is `vit_base_patch16_224` (see [artifacts/best_model_metadata.json](artifacts/best_model_metadata.json)).
+Repository note: artifacts exist for all three model families in [artifacts](artifacts); deployed model is ViT.
 
-Why this is a reasonable winner in this project:
+## Confusion Analysis
 
-1. It won the notebook's multi-criterion validation ranking (accuracy + loss + stability).
-2. It generalized to a solid held-out test accuracy of 73.89%.
-3. The class-wise results show strong separability on multiple hardware categories (for example RAM_Stick and PC_Case), indicating useful feature learning beyond one or two easy classes.
-4. ViT backbones often perform strongly on diverse visual patterns when enough augmentation and transfer learning are used, which aligns with this dataset's variety (component closeups and full-build cable-management scenes).
-
-Note: the repository stores final model artifacts for all three families in [artifacts](artifacts), and the final deployed model is the selected ViT variant.
-
-### 7) Confusion metrics snapshot (from fixed held-out test split)
-
-To visualize model behavior beyond aggregate accuracy, below are the highest off-diagonal confusion pairs per model (true class -> predicted class).
+Top off-diagonal confusion pairs on the fixed held-out test split (`true -> predicted`):
 
 | Rank | ViT-Base confusion | Count | ResNet50 confusion | Count | EfficientNet-B3 confusion | Count |
 | --- | --- | ---: | --- | ---: | --- | ---: |
@@ -146,11 +147,11 @@ To visualize model behavior beyond aggregate accuracy, below are the highest off
 
 Interpretation:
 
-- ViT-Base has lower aggregate confusion and better macro/weighted F1 compared to the CNN baselines.
-- Most confusion happens among visually similar categories (e.g., cable-management pair, CPU vs Motherboard, cooling categories).
-- This aligns with class-level recall/F1 variation reported in `reports/best_model_class_metrics.csv`.
+- ViT-Base shows lower aggregate confusion and better macro/weighted F1 than CNN baselines.
+- Most confusion appears between visually similar classes (for example cable-management pair, CPU vs Motherboard, cooling categories).
+- This matches per-class variation in `reports/best_model_class_metrics.csv`.
 
-## Final Evaluation (Held-out Test)
+## Final Test Results
 
 Best model: `vit_base_patch16_224`
 
@@ -161,28 +162,28 @@ Best model: `vit_base_patch16_224`
 Per-class highlights:
 
 - Strong classes:
-	- RAM_Stick (F1: 0.9000)
-	- PC_Case (F1: 0.8163)
-	- Air_Cooler (F1: 0.8148)
-	- CPU (F1: 0.8000)
+  - RAM_Stick (F1: 0.9000)
+  - PC_Case (F1: 0.8163)
+  - Air_Cooler (F1: 0.8148)
+  - CPU (F1: 0.8000)
 - Harder classes:
-	- AIO_Liquid_Cooler (F1: 0.6286)
-	- Good_Cable_Management (F1: 0.6286)
-	- Bad_Cable_Management (F1: 0.6333)
+  - AIO_Liquid_Cooler (F1: 0.6286)
+  - Good_Cable_Management (F1: 0.6286)
+  - Bad_Cable_Management (F1: 0.6333)
 
 Saved reports:
 
 - `reports/best_model_class_metrics.csv`
 - `reports/best_model_classification_report.csv`
 
-## Artifacts and Deployment Assets
+## Artifacts and Deployment
 
-Model artifacts are exported to `artifacts/`:
+Model artifacts in `artifacts/`:
 
 - `best_model_export.pkl` (FastAI learner export)
 - `best_model_state_dict.pth` (PyTorch weights)
 - `best_model_metadata.json` (classes, image size, metrics, timestamp)
-- Optional ONNX export path in notebook (`best_model.onnx`)
+- Optional ONNX export target in notebook (`best_model.onnx`)
 
 Hugging Face assets:
 
@@ -191,15 +192,15 @@ Hugging Face assets:
 - Space requirements: `hf_publish/space/requirements.txt`
 - Space URL: https://huggingface.co/spaces/shaanzeeeee/vit-base-pc-parts-inference
 
-## Inference API (Notebook Utility)
+## Inference Utility
 
-The project includes a reusable inference helper that returns:
+Notebook inference helper returns:
 
 - predicted class
 - predicted class index
-- confidence for all 11 classes (sorted)
+- confidence scores for all 11 classes (sorted)
 
-Implemented in the final notebook section.
+Implemented in the final section of `fastai_3_models.ipynb`.
 
 ## Project Structure
 
@@ -218,11 +219,11 @@ Implemented in the final notebook section.
 |  |- best_model_state_dict.pth
 |  |- best_model_metadata.json
 |- hf_publish/
-	 |- README.md
-	 |- space/
-			|- app.py
-			|- requirements.txt
-			|- README.md
+|  |- README.md
+|  |- space/
+|     |- app.py
+|     |- requirements.txt
+|     |- README.md
 ```
 
 ## Reproducibility
@@ -231,7 +232,7 @@ Implemented in the final notebook section.
 
 Python 3.10+ recommended.
 
-Install core dependencies:
+Install dependencies:
 
 ```bash
 pip install fastai timm torch torchvision scikit-learn seaborn matplotlib pandas numpy gradio huggingface_hub pillow
@@ -241,21 +242,21 @@ pip install fastai timm torch torchvision scikit-learn seaborn matplotlib pandas
 
 1. Open `fastai_3_models.ipynb`.
 2. Run all cells from top to bottom.
-3. Outputs are generated into `cleaned/`, `reports/`, and `artifacts/`.
+3. Outputs are generated in `cleaned/`, `reports/`, and `artifacts/`.
 
 ## Engineering Notes
 
-- The workflow enforces clean train/validation/test boundaries.
-- The same split and transforms are reused across models for reliable comparisons.
+- Clean train/validation/test boundaries are enforced.
+- Same split and transform policy reused across all models for fair benchmarking.
 - Exported artifacts support both research reproducibility and deployment handoff.
 
 ## Next Improvements
 
-1. Add class-balanced sampling or focal loss for the harder cable-management classes.
+1. Add class-balanced sampling or focal loss for harder cable-management classes.
 2. Add test-time augmentation and confidence calibration.
-3. Add lightweight model variants for faster inference on CPU/mobile.
-4. Add drift checks and automated retraining hooks for new incoming image distributions.
+3. Add lightweight variants for faster CPU/mobile inference.
+4. Add drift checks and automated retraining hooks for new image distributions.
 
 ---
 
-If you are a recruiter or hiring manager, this repository demonstrates practical ML skills across data quality, model selection, metrics interpretation, and deployment, with reproducible outputs and clear artifact management.
+For recruiters/hiring managers: this repository demonstrates practical ML workflow depth across data quality, fair model selection, metrics interpretation, and deployment readiness.
