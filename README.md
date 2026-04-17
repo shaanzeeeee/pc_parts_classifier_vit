@@ -17,6 +17,14 @@ This repository is structured like a production-style ML project: data cleaning,
 | Held-out test accuracy | 73.89% |
 | Deployment | Hugging Face Model + Gradio Space |
 
+## Links
+
+- Hugging Face Model: https://huggingface.co/shaanzeeeee/vit_base_patch16_pc_parts_classifier
+- Hugging Face Space (Inference Demo): https://huggingface.co/spaces/shaanzeeeee/vit-base-pc-parts-inference
+- Hugging Face API (Space config): https://shaanzeeeee-vit-base-pc-parts-inference.hf.space/config
+- Dataset: https://huggingface.co/datasets/shaanzeeeee/pc_parts_classifier_dataset
+- Live Web App (GitHub Pages): https://shaanzeeeee.github.io/pc_parts_classifier_vit/
+
 ## Quick Navigation
 
 - [Business / Product Value](#business--product-value)
@@ -187,10 +195,13 @@ Model artifacts in `artifacts/`:
 
 Hugging Face assets:
 
+- Model URL: https://huggingface.co/shaanzeeeee/vit_base_patch16_pc_parts_classifier
+- Dataset URL: https://huggingface.co/datasets/shaanzeeeee/pc_parts_classifier_dataset
 - Model card and files: `hf_publish/README.md`
 - Space app: `hf_publish/space/app.py`
 - Space requirements: `hf_publish/space/requirements.txt`
 - Space URL: https://huggingface.co/spaces/shaanzeeeee/vit-base-pc-parts-inference
+- Live frontend URL: https://shaanzeeeee.github.io/pc_parts_classifier_vit/
 
 ## Inference Utility
 
