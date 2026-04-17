@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="PC Parts Classifier UI with NVIDIA-inspired design. Upload an image and get top-5 class predictions."
+    />
+    <title>PC Parts Classifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">PC Parts Classifier</span>
+        </div>
+        <a class="link-chip" href="https://huggingface.co/spaces/shaanzeeeee/vit-base-pc-parts-inference" target="_blank" rel="noreferrer">Open Hugging Face Space</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Vision Transformer Inference</p>
+          <h1>Classify PC Components and Cable Management from Images</h1>
+          <p class="hero-copy">
+            Upload a PC image to classify it into 1 of 11 classes using the hosted ViT-Base model.
+            Designed for fast experimentation with clear confidence visualization.
+          </p>
+        </div>
+      </section>
+
+      <section class="section-light">
+        <div class="container grid two-col">
+          <article class="card">
+            <h2>Upload Image</h2>
+            <p class="muted">
+              Supported: JPG, PNG, WEBP. Drag and drop or choose a file.
+            </p>
+
+            <label id="dropzone" class="dropzone" for="imageInput" tabindex="0" aria-label="Upload image">
+              <input id="imageInput" type="file" accept="image/*" hidden />
+              <div class="dropzone-icon" aria-hidden="true">+</div>
+              <p class="dropzone-title">Drop image here</p>
+              <p class="dropzone-sub">or click to browse</p>
+            </label>
+
+            <div class="actions">
+              <button id="predictBtn" class="btn btn-primary" disabled>Classify Image</button>
+              <button id="clearBtn" class="btn btn-secondary" disabled>Clear</button>
+            </div>
+
+            <div id="status" class="status muted" aria-live="polite"></div>
+
+            <div id="previewWrap" class="preview-wrap hidden">
+              <p class="preview-label">Preview</p>
+              <img id="previewImage" alt="Uploaded preview" />
+            </div>
+          </article>
+
+          <article class="card card-dark" id="resultsCard" aria-live="polite">
+            <h2>Predictions</h2>
+            <p class="muted-light">Top-5 confidence scores from model output.</p>
+
+            <div id="resultEmpty" class="result-empty">
+              <p>No prediction yet. Upload an image and run inference.</p>
+            </div>
+
+            <div id="resultContent" class="hidden">
+              <div class="result-main">
+                <span class="result-label">Top Class</span>
+                <h3 id="topClass">-</h3>
+                <span id="topConfidence" class="badge">-</span>
+              </div>
+
+              <ul id="topList" class="top-list"></ul>
+
+              <div class="actions">
+                <button id="copyBtn" class="btn btn-secondary" disabled>Copy Results</button>
+                <button id="downloadBtn" class="btn btn-secondary" disabled>Download Results</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-dark">
+        <div class="container grid two-col">
+          <article class="card card-outline">
+            <h2>Class Help</h2>
+            <p class="muted-light">
+              Use this guide to interpret output categories.
+            </p>
+            <ul id="classHelp" class="class-help"></ul>
+          </article>
+
+          <article class="card card-outline">
+            <h2>Model Notes</h2>
+            <ul class="notes">
+              <li>Best model: ViT-Base Patch16 224</li>
+              <li>Held-out test accuracy: 73.89%</li>
+              <li>Most common confusions are visually similar classes (for example cable-management pair).</li>
+              <li>Inference is served via a public Hugging Face Space endpoint.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <span>Built for fast model access on GitHub Pages.</span>
+        <a href="https://huggingface.co/shaanzeeeee/vit_base_patch16_pc_parts_classifier" target="_blank" rel="noreferrer">Model Card</a>
+      </div>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

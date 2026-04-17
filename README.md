@@ -224,7 +224,47 @@ Implemented in the final section of `fastai_3_models.ipynb`.
 |     |- app.py
 |     |- requirements.txt
 |     |- README.md
+|- index.html
+|- styles.css
+|- app.js
 ```
+
+## Frontend (GitHub Pages UI)
+
+A static frontend is included for simple public access via GitHub Pages, using the NVIDIA-inspired design system from `DESIGN.md`.
+
+Frontend files:
+
+- `index.html` - app shell and semantic layout
+- `styles.css` - design tokens and responsive styling
+- `app.js` - upload, inference request, and result rendering logic
+
+Implemented features:
+
+1. Drag-and-drop and click-upload image input
+2. Local image preview
+3. Top-5 prediction list with confidence bars
+4. Class help/description panel
+5. Copy and download prediction results
+6. Loading and error states
+
+Inference source:
+
+- Public Hugging Face Space endpoint (`shaanzeeeee/vit-base-pc-parts-inference`)
+
+Run locally (quick static preview):
+
+```bash
+python -m http.server 5500
+```
+
+Then open `http://localhost:5500`.
+
+Deploy on GitHub Pages:
+
+1. Push these frontend files to your repository root (already done in this repo layout).
+2. In GitHub repo settings, enable Pages and select `main` branch with `/ (root)`.
+3. Wait for Pages build and open the generated site URL.
 
 ## Reproducibility
 
